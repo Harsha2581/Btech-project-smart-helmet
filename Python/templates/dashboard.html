@@ -1,0 +1,85 @@
+{% extends "layout.html" %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="row">
+    <!-- Temperature -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>Temperature: <span id="tempValue">{{ temp }}</span> °C</h5>
+        </div>
+    </div>
+
+    <!-- Humidity -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>Humidity: <span id="humidityValue">{{ humidity }}</span> %</h5>
+        </div>
+    </div>
+
+    <!-- Heartbeat -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>Heartbeat: <span id="bpmValue">{{ bpm }}</span> BPM</h5>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Gas Sensor -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>Gas Value: <span id="gasValue">{{ gas }}</span></h5>
+        </div>
+    </div>
+
+    <!-- Fire -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>Fire Status: <span id="fireValue" class="text-danger">{{ fire }}</span></h5>
+        </div>
+    </div>
+
+    <!-- Tilt -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>Tilt Status: <span id="tiltValue" class="text-warning">{{ tilt }}</span></h5>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- SOS -->
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>SOS Status: <span id="sosValue" class="text-info">{{ sos }}</span></h5>
+        </div>
+    </div>
+
+    <!-- Buzzer -->
+    <div class="col-xl-6 col-md-6 mb-4">
+        <div class="card shadow text-center p-3">
+            <h5>Buzzer: <span id="buzzerValue" class="text-primary">{{ buzzer }}</span></h5>
+        </div>
+    </div>
+</div>
+
+<script>
+function fetchData() {
+    fetch('/get_realtime_data')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('tempValue').innerText = data.temp;
+            document.getElementById('humidityValue').innerText = data.humidity;
+            document.getElementById('bpmValue').innerText = data.bpm;
+            document.getElementById('gasValue').innerText = data.gas;
+            document.getElementById('fireValue').innerText = data.fire;
+            document.getElementById('tiltValue').innerText = data.tilt;
+            document.getElementById('sosValue').innerText = data.sos;
+            document.getElementById('buzzerValue').innerText = data.buzzer;
+        });
+}
+
+setInterval(fetchData, 3000);
+</script>
+{% endblock %}

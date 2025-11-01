@@ -1,0 +1,136 @@
+ {% extends "layout.html" %}
+ {% block content %}
+ <!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Graphs Section -->
+<div class="row">
+    <!-- Temperature Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Temperature: <span id="tempValue">--</span>°C</h5>
+                <canvas id="tempChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Humidity Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Humidity: <span id="humidityValue">--</span>%</h5>
+                <canvas id="humidityChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- More Graphs -->
+<div class="row">
+    <!-- Vibration Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Vibration: <span id="vibrationValue">--</span></h5>
+                <canvas id="vibrationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rain Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Rain Intensity: <span id="rainValue">--</span></h5>
+                <canvas id="rainChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Landslide Detection Status -->
+<div class="row">
+    <div class="col-xl-12 col-md-12 mb-4">
+        <div class="card border-left-danger shadow h-100 py-2">
+            <div class="card-body">
+                <h3 class="text-center">Landslide Status: <span id="landslideStatus" class="text-danger">Checking...</span></h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Real-time Chart Updates & Alarm -->
+<script>
+    var tempCtx = document.getElementById('tempChart').getContext('2d');
+    var humidityCtx = document.getElementById('humidityChart').getContext('2d');
+    var vibrationCtx = document.getElementById('vibrationChart').getContext('2d');
+    var rainCtx = document.getElementById('rainChart').getContext('2d');
+
+    var tempChart = new Chart(tempCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Temperature (°C)', data: [], borderColor: 'red', borderWidth: 2, fill: false }] }
+    });
+
+    var humidityChart = new Chart(humidityCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Humidity (%)', data: [], borderColor: 'blue', borderWidth: 2, fill: false }] }
+    });
+
+    var vibrationChart = new Chart(vibrationCtx, {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Vibration', data: [], backgroundColor: 'orange', borderWidth: 1 }] }
+    });
+
+    var rainChart = new Chart(rainCtx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Rain Intensity', data: [], borderColor: 'green', borderWidth: 2, fill: false }] }
+    });
+
+    function fetchData() {
+        fetch('/get_realtime_data')
+            .then(response => response.json())
+            .then(data => {
+                let currentTime = new Date().toLocaleTimeString();
+
+                // Update Text Values
+                document.getElementById("tempValue").innerText = data.temp;
+                document.getElementById("humidityValue").innerText = data.humidity;
+                document.getElementById("vibrationValue").innerText = data.vibration;
+                document.getElementById("rainValue").innerText = data.rain;
+
+                // Update charts
+                updateChart(tempChart, data.temp, currentTime);
+                updateChart(humidityChart, data.humidity, currentTime);
+                updateChart(vibrationChart, data.vibration, currentTime);
+                updateChart(rainChart, data.rain, currentTime);
+
+                // Landslide Detection
+                let landslideStatus = "No Landslide";
+                if (data.rain < 200 && data.vibration == 1) {
+                    landslideStatus = "⚠️ Landslide Detected!";
+                    playAlarm(); 
+                }
+                document.getElementById("landslideStatus").innerText = landslideStatus;
+            });
+    }
+
+    function updateChart(chart, value, time) {
+        chart.data.labels.push(time);
+        chart.data.datasets[0].data.push(value);
+        if (chart.data.labels.length > 10) chart.data.labels.shift();
+        if (chart.data.datasets[0].data.length > 10) chart.data.datasets[0].data.shift();
+        chart.update();
+    }
+
+    function playAlarm() {
+        let alarm = new Audio("{{ url_for('static', filename='alarm.wav') }}");
+        alarm.play();
+    }
+
+    setInterval(fetchData, 5000);  // Fetch new data every 5 seconds
+</script>
+
+
+{% endblock %}
+

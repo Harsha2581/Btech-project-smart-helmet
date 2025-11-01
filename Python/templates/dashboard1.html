@@ -1,0 +1,152 @@
+{% extends "layout.html" %}
+{% block content %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Graphs Section -->
+<div class="row">
+    <!-- Temperature Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Temperature Over Time</h5>
+                <canvas id="tempChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Humidity Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Humidity Over Time</h5>
+                <canvas id="humidityChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- More Graphs -->
+<div class="row">
+    <!-- Vibration Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Vibration Over Time</h5>
+                <canvas id="vibrationChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rain Graph -->
+    <div class="col-xl-6 col-md-12 mb-4">
+        <div class="card shadow">
+            <div class="card-body">
+                <h5 class="card-title">Rainfall Over Time</h5>
+                <canvas id="rainChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Real-time Chart Updates -->
+<script>
+    var tempCtx = document.getElementById('tempChart').getContext('2d');
+    var humidityCtx = document.getElementById('humidityChart').getContext('2d');
+    var vibrationCtx = document.getElementById('vibrationChart').getContext('2d');
+    var rainCtx = document.getElementById('rainChart').getContext('2d');
+
+    var tempChart = new Chart(tempCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Temperature (°C)',
+                data: [],
+                borderColor: 'rgb(255, 99, 132)',
+                borderWidth: 2,
+                fill: false
+            }]
+        }
+    });
+
+    var humidityChart = new Chart(humidityCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Humidity (%)',
+                data: [],
+                borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 2,
+                fill: false
+            }]
+        }
+    });
+
+    var vibrationChart = new Chart(vibrationCtx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Vibration',
+                data: [],
+                backgroundColor: 'rgb(255, 206, 86)',
+                borderWidth: 1
+            }]
+        }
+    });
+
+    var rainChart = new Chart(rainCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Rain Intensity',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                borderWidth: 2,
+                fill: false
+            }]
+        }
+    });
+
+    function fetchData() {
+        fetch('/get_realtime_data')
+            .then(response => response.json())
+            .then(data => {
+                let currentTime = new Date().toLocaleTimeString();
+
+                // Update temperature chart
+                tempChart.data.labels.push(currentTime);
+                tempChart.data.datasets[0].data.push(data.temp);
+                if (tempChart.data.labels.length > 10) tempChart.data.labels.shift();
+                if (tempChart.data.datasets[0].data.length > 10) tempChart.data.datasets[0].data.shift();
+                tempChart.update();
+
+                // Update humidity chart
+                humidityChart.data.labels.push(currentTime);
+                humidityChart.data.datasets[0].data.push(data.humidity);
+                if (humidityChart.data.labels.length > 10) humidityChart.data.labels.shift();
+                if (humidityChart.data.datasets[0].data.length > 10) humidityChart.data.datasets[0].data.shift();
+                humidityChart.update();
+
+                // Update vibration chart
+                vibrationChart.data.labels.push(currentTime);
+                vibrationChart.data.datasets[0].data.push(data.vibration);
+                if (vibrationChart.data.labels.length > 10) vibrationChart.data.labels.shift();
+                if (vibrationChart.data.datasets[0].data.length > 10) vibrationChart.data.datasets[0].data.shift();
+                vibrationChart.update();
+
+                // Update rain chart
+                rainChart.data.labels.push(currentTime);
+                rainChart.data.datasets[0].data.push(data.rain);
+                if (rainChart.data.labels.length > 10) rainChart.data.labels.shift();
+                if (rainChart.data.datasets[0].data.length > 10) rainChart.data.datasets[0].data.shift();
+                rainChart.update();
+            });
+    }
+
+    setInterval(fetchData, 5000);  // Fetch new data every 5 seconds
+</script>
+{% endblock %}
